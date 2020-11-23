@@ -1,16 +1,19 @@
 /*
-  Borrowed Code: LiquidCrystal Library - Hello World
+Kip Trujillo
+First Published: 11/22/2020  
+*/
 
- */
-
-// include the library code:
-#include <LiquidCrystal.h>
+// All the includes.. 
+#include <LiquidCrystal.h> // Borrowed Code: LiquidCrystal Library - Hello World
 #include "DHT.h"
 #include <SPI.h>
 #include <SD.h>
+
+// File for SD card data storage 
 File myFile;
 String filename = "TEMP.TXT";
 
+// Setting aside friendly names for digital I/O pins
 #define tempsensor 0
 #define DHTPIN 8     // Digital pin connected to the DHT sensor
 
@@ -19,19 +22,23 @@ String filename = "TEMP.TXT";
 #define SECONDLY 1
 #define MINUTELY 2
 #define HOURLY 3
-//interval array - represents milliseconds used in all code logic
-/*------------------------------- 2 sec|60 Sec|  1HR  |   24HR  |*/
+/*****************************************************************
+ * interval array - represents milliseconds used in all code logic
+ *------------------------------- 2 sec|60 Sec|  1HR  |   24HR  |*/
 const unsigned long interval[] = {2000, 60000, 3600000, 86400000};
 
-// initialize the library with the numbers of the interface pins
-// ** This initialization is different from the example code. Ye be warned... 
+/***************************************************************************
+ * initialize the LCD with the numbers of the interface pins
+** This initialization is different from the example code. Ye be warned... */
 LiquidCrystal lcd(12, 11, 5, 4, 7, 6);
 
-// INIT the DHT 11 Humiditemp Sensor
-DHT dht(DHTPIN, DHT11);
+DHT dht(DHTPIN, DHT11); // INIT the DHT 11 Humiditemp Sensor
 
+/**************************************************************************
+ * Vars for Temperature Data manipulation. The corresponding UI[] is where 
+ * data displayed to the LCD is posted - not necessary but makes life easier 
+ ***************************************************************************/
 short current, high, low, oneday, sevenday = 0;
-
 short UI[] = {current, high, low, oneday, sevenday};
 
     // The Array which stores 1 Minute worth of temperature sensor readings (2 sec intervals)
