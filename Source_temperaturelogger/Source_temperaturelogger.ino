@@ -79,18 +79,13 @@ void initSD(){
     while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-
   Serial.print("Initializing SD card...");
 
   if (!SD.begin(4)) {
-    Serial.println("initialization failed!");
-    while (1);
-  }
+      Serial.println("initialization failed!");
+      while (1);
+     }
   Serial.println("initialization done.");
-
-  // open the file. note that only one file can be open at a time,
-  // so you have to close this one before opening another.
-
   }
 
 void writetoSD(short X){
@@ -99,7 +94,6 @@ void writetoSD(short X){
   myFile.close();
   Serial.println(X);
   }
-
 
 void setup() {
   lcd.begin(16, 2); // set up the LCD's number of columns and rows:
@@ -239,7 +233,6 @@ void loop() {
   UI[3] = oneday;
   UI[4] = sevenday;
   drawUI(UI);
-
 }
 
 /* SumArray function UNUSED - No real gains & a pain in my butt to make more abstract than I need it to be.. 
@@ -328,7 +321,6 @@ void displaySevenDayTemp(short X){
  * Extracts the data to be displayed, then sends each data point 
  * to their corresponding draw functions.
  ****************************************************************/
-
 void drawUI(short X[]){
   displayCurrentTemp(X[0]);
   displayHighTemp(X[1]);
