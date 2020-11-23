@@ -95,26 +95,19 @@ void writetoSD(short X){
 
 
 void setup() {
-short test[] = {1,2,3,4,5};
+  lcd.begin(16, 2); // set up the LCD's number of columns and rows:
   
+  dht.begin(); // Start the Temperature Sensor
   
-  // set up the LCD's number of columns and rows:
-  lcd.begin(16, 2);
-  
-  // Start the Temperature Sensor
-  dht.begin();
-  // Print a message to the LCD.
-  lcd.print("hello, world!");
-  short T = sumArray(test, (sizeof(test)/sizeof(test[0])));
-  lcd.print(T);
+  lcd.print("hello, world! <3"); // Print a message to the LCD.
   delay(1000);
   lcd.clear();
+  
   setDefaultUI();
+  
+  current = high = low = getTemp(); //Set initializing values so i have something to print and compare later
 
-  //Set initializing values so i have something to print and compare later
-  current = high = low = getTemp();
-
-  initSD(); //This breaks the UI when SD is not attached. Probably the pause on serial init. meh. 
+  initSD(); //This breaks the UI. It's a pin allocation conflict. meh. 
   
 }
 
@@ -126,9 +119,10 @@ void loop() {
 /**********************
  * LIVE DATA SUBROUTINE
  **********************/
+ // Millis compare for time between sensor readings. The DHT11 requires at least 1 second
   if (currentMillis - previousMillis >= interval[LIVE]){
-    //store previous delay value
-    previousMillis = currentMillis;
+    previousMillis = currentMillis; //store previous delay value
+    
     current = getTemp();
     //UI[0] = current;  - UI updates happen later... can probably remove this line.
 
@@ -146,22 +140,17 @@ void loop() {
           }
     }
   
-
 /***********************************************************************
  * SECONDLY SUBROUTINE - Result is 1 minute average
  * This calculates the average of the last 30 LIVE sensor readings. The
  * secondly[] is filled with data by the LIVE data subroutine above. 
  ***********************************************************************/
-
-
-
 //Millis compare on time required for a full rotation of the secondly array. 
   if (secondlyMillis - previousSecondlyMillis >= interval[SECONDLY] ){
     previousSecondlyMillis = secondlyMillis;
 
-  //<todo>break this out into a arraysum function
-    // Clear the VAR for computing averages - else averages would go to INFINITY
-    short onehour = 0;
+  //<todo>break this out into a arraysum function?
+    short onehour = 0; // Clear the VAR for computing averages - else averages would go to INFINITY
     for(int i=0; i< secondlySize; i++){
       onehour += secondly[i];
       }
@@ -183,50 +172,46 @@ void loop() {
  * MINUTELY SUBROUTINE - result is 1 hour average
  * 60 sensor readings * {+/- 200 deg F} = ~12,000. This is 1/3 the range of MAX_SHORT_INT of 36000
  **************************************************************************************************/
-
   if (minutelyMillis - previousMinutelyMillis >= interval[MINUTELY]){
       previousMinutelyMillis = millis();
     
-    
     short oneHour = 0; // a temp varaible not used anywhere else. This is why it's declared here. 
-
+    
     for (int j=0; j < minutelySize; j++ ){
-      oneHour += minutely[j];
-      }
-    // solve the average temps for previous hour.   
-    oneHour /= minutelySize;
+          oneHour += minutely[j];
+        }   
+    oneHour /= minutelySize; // solve the average temps for previous hour.
 
     hourly[hourlyptr] = oneHour;
     hourlyptr++;
 
-      // Check if at end of the array. If yes, wrap index back to 0
-        if (hourlyptr >= hourlySize ){
-          hourlyptr = 0;
-          }
-    }
+    // Check if at end of the array. If yes, wrap index back to 0
+    if (hourlyptr >= hourlySize ){
+       hourlyptr = 0;
+       }
+  }
  
-/***************************************************************************************************
+/**********************************************
  * HOURLY SUBROUTINE - result is 1 day average
- * 
- **************************************************************************************************/
+ *********************************************/
   if(hourlyMillis - previousHourlyMillis >= interval[HOURLY]){
     previousHourlyMillis = millis();
 
-    oneday = 0;
     //sum the contents of the array
+    oneday = 0;
     for (int k = 0; k < hourlySize; k++){
       oneday += hourly[k];
       }
-    // divide by # of elements to get average
-    oneday /= hourlySize;
+    oneday /= hourlySize; // solve the average temps for previous hour.
+    
     daily[dailyptr] = oneday;
     dailyptr++;
-
-        if(dailyptr >= dailySize){
-          dailyptr = 0;
-          }
+    
+    // Check if at end of the array. If yes, wrap index back to 0
+    if(dailyptr >= dailySize){
+      dailyptr = 0;
+      }
     }
- 
  
   if(current > high){
       high = current;
@@ -267,9 +252,10 @@ short sumArray(short X[], short XSize){
   return(sum);
   }
 
-/* setDefaultUI() - draws the initial background on the LCD screen. Fresh Variables overwrite the # chars
- * Called during init() only
- */
+/* ******************************************************************
+ *  setDefaultUI() - draws the initial background on the LCD screen. 
+ *  Fresh data will overwrite the # chars. Called during init() only
+ ********************************************************************/
 void setDefaultUI() {
   String line0 = "C###  H###  L###";
   String line1 = "1Day###  7Day###";
@@ -279,17 +265,14 @@ void setDefaultUI() {
   lcd.print(line1);
 }
 
-/*getTemp() - handles temperature measurement sensor readings. 
+/*********************************************************************
+ *  getTemp() - handles temperature measurement sensor readings. 
  *  Returns current sensor reading in Farenheight as an integer. 
- */
+ *********************************************************************/
 short getTemp(){
-  // init to an impossible value. Should be fun... 
-  short val = -100;  
+  short val = -100;  // init to an impossible value. Should be fun if sensor read fails... 
   float tempF = dht.readTemperature(true);
-  
-  // convert float to short int. Floats are too big and ugly. 
-  val = tempF; 
-
+  val = tempF; // convert float to short int. Floats are too big and ugly.
   return(val);
 }
 
